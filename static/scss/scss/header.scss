@@ -1,0 +1,165 @@
+.main-left {
+	@include up-sm {
+		padding-left: 80px;
+	}
+}
+
+.header-left {
+	width: 80px;
+	position: fixed;
+	bottom: 0;
+	top: 0;
+	background: $px-bg-3;
+	border-right: 1px solid rgba($px-dark, 0.1);
+	.theme-light & {
+		background: $px-white;
+	}
+	.scroll-bar {
+		height: 100%;
+	}
+	.hl-top {
+		a {
+			background: $px-theme;
+			color: $px-white;
+			font-weight: 600;
+			text-decoration: none;
+			font-size: 40px;
+			height: 80px;
+			width: 80px;
+			line-height: 80px;
+			display: inline-block;
+			vertical-align: top;
+			text-align: center;
+		}
+	}
+	.nav-menu {
+		padding-top: 45px;
+		padding-bottom: 45px;
+		li {
+			width: 100%;
+			+ li {
+				border-top: 1px solid rgba($px-white, 0.1); 
+				.theme-light & {
+					border-top: 1px solid rgba($px-dark, 0.1); 
+				}
+			}
+			.nav-link {
+				margin: 0;
+				padding: 10px 0;
+				color: $px-white;
+				text-decoration: none;
+				@include transition(ease all 0.35s);
+				text-align: center;
+				.theme-light & {
+					color: $px-dark;
+				}
+				i {
+					width: 40px;
+					height: 40px;
+					line-height: 40px;
+					font-size: 25px;
+				}
+				@include up-sm {
+					&:hover {
+						color: $px-theme;
+					}
+				}
+				&.active {
+					color: $px-theme;
+					font-weight: 600;
+				}
+			}
+		}
+	}
+	.social-icons {
+	    position: absolute;
+	    bottom: 0;
+	    left: 0;
+	    right: 0;
+	    width: 80px;
+	    display: none;
+    	a {
+		    color: $px-white;
+		    font-size: 14px;
+		    margin-right: 17px;
+		    &:hover {
+		    	color: $px-theme;
+		    }
+    	}
+    }
+}
+
+.tooltip {
+	font-size: 12px;
+}
+
+
+.mob-header {
+	padding: 15px;
+	display: none;
+	position: fixed;
+	top: 0;
+	width: 100%;
+	z-index: 11;
+	> .d-flex {
+		align-items: center;
+	}
+	.navbar-brand {
+		padding: 0;
+	}
+	.logo-text {
+		font-weight: 600;
+		color: $px-white;
+		font-size: 25px;
+		line-height: 1;
+		.theme-light & {
+			color: $px-dark;
+		}
+	}
+	.fixed-header & {
+		background: $px-dark;
+	}
+	.theme-light.fixed-header & {
+		background: $px-white;
+	}
+}
+
+.toggler-menu {
+	width: 40px;
+    height: 40px;
+    position: relative;
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    margin-left: 15px;
+	background: $px-theme;
+	border: none;
+	margin-left: auto;
+	span {
+		position: absolute;
+	    top: 0;
+	    left: 0;
+	    bottom: 0;
+	    right: 0;
+	    width: 25px;
+	    height: 2px;
+	    margin: auto;
+	    box-shadow: 0px -8px 0 0px currentColor, 0px 8px 0 0px currentColor;
+		background: $px-white;
+		color: $px-white;
+	}
+}
+
+@include down-sm {
+	.mob-header {
+		display: block;
+	}
+	.header-left {
+		@include transition(ease all 0.35s);
+		left: -200px;
+		z-index: 222;
+		&.menu-open {
+			left: 0;
+		}
+	}
+}
