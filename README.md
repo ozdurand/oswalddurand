@@ -64,6 +64,30 @@ oswald/
 
 ---
 
+## Audit: fixes applied & open items
+
+### Fixed
+
+| # | Issue | File | What changed |
+|---|-------|------|--------------|
+| 1 | **Chatbot widget never loaded** — `<?php include 'partials/chatbot.html'; ?>` is silently ignored by browsers on a `.html` file | `website/index.html` | Inlined the chatbot HTML directly before `</body>` |
+| 2 | **Chatbot script used an absolute path** — `/static/js/chatbot-widget.js` breaks when not served from the domain root | `website/index.html` | Changed to the relative path `static/js/chatbot-widget.js`, consistent with every other `<script>` tag on the page |
+| 3 | **Skill bar values didn't match labels** — Machine Learning bar had `aria-valuenow="90"` while the label read `80%`; MLOps bar had `aria-valuenow="80"` while the label read `85%` | `website/index.html` | Corrected both `aria-valuenow` attributes to match their visible labels (`80` and `85` respectively) |
+
+---
+
+### Needs attention
+
+| # | Issue | File | Recommended fix |
+|---|-------|------|-----------------|
+| 1 | **No chatbot backend** — `chatbot-widget.js` POSTs to `/api/v1/chat` which doesn't exist on a purely static host. Every message returns an error. | `website/static/js/chatbot-widget.js` | Deploy the `chatbot/` FastAPI service (see _Local development_ below) and set `window.CHATBOT_API = "https://your-api-url"` in your HTML before the widget script loads |
+| 2 | **Contact form requires PHP** — `mail_send.js` POSTs to `process_form.php`, which needs a PHP runtime. This fails silently on static hosts (GitHub Pages, Netlify, etc.) | `website/static/js/mail_send.js`, `website/process_form.php` | Either add a `php-fpm` container (see _Notes on PHP_ below) or migrate to `POST /api/v1/contact` on the FastAPI service |
+| 3 | **Social links are placeholders** — Twitter, Facebook, Pinterest, and Instagram icons all link to `#` | `website/index.html` (~line 142–147) | Replace `href="#"` with your real profile URLs, or remove the icons you don't use |
+| 4 | **LinkedIn points to the generic homepage** — link goes to `https://www.linkedin.com/` instead of your profile | `website/index.html` (~line 144) | Update to your personal LinkedIn URL (e.g. `https://www.linkedin.com/in/your-handle`) |
+| 5 | **Blog source label mismatch** — one article shows "MEDIUM WEBSITE" in the meta line but the link goes to OpenAI's site | `website/index.html` (~line 634) | Change the meta label to "OpenAI" (or update the link if the article was from Medium) |
+
+---
+
 ## Adding the chatbot to your site
 
 In every page that should show the widget, just before `</body>`:
