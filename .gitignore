@@ -1,0 +1,27 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Env / secrets
+.env
+*.env.local
+
+# Vector store (rebuilt from sources)
+chatbot/data/chroma/
+
+# Editors
+.vs/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
