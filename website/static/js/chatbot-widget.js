@@ -12,7 +12,13 @@
 (function () {
   "use strict";
 
-  const API_URL = window.CHATBOT_API || "/api/v1/chat";
+  const API_URL = window.CHATBOT_API || (() => {
+    const localHost = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+    if (localHost && window.location.port && window.location.port !== "8000") {
+      return `http://${window.location.hostname}:8000/api/v1/chat`;
+    }
+    return "/api/v1/chat";
+  })();
   const STORAGE_KEY = "portfolio_chat_history";
   const MAX_HISTORY = 20;
 

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     retrieval_k: int = 4
 
     # CORS
-    allowed_origins: str = "http://localhost:3000"
+    allowed_origins: str = "http://localhost:3000,http://localhost:8081,http://127.0.0.1:8081"
 
     @property
     def origins_list(self) -> list[str]:
