@@ -56,6 +56,16 @@
     return div;
   }
 
+  function renderTyping() {
+    const div = document.createElement("div");
+    div.className = "cb-msg cb-assistant";
+    div.innerHTML =
+      '<span class="cb-typing"><span></span><span></span><span></span></span>';
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
   // Replay prior session messages
   history.forEach((m) => renderMessage(m.role, m.content));
   if (history.length === 0) {
@@ -68,13 +78,20 @@
   // --------------------------- behavior ------------------------
   function togglePanel(open) {
     panel.classList.toggle("cb-open", open);
-    if (open) input.focus();
+    if (open) setTimeout(() => input.focus(), 50);
   }
 
   launcher.addEventListener("click", () =>
     togglePanel(!panel.classList.contains("cb-open"))
   );
   closeBtn.addEventListener("click", () => togglePanel(false));
+
+  // Esc closes the panel
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && panel.classList.contains("cb-open")) {
+      togglePanel(false);
+    }
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -86,7 +103,7 @@
     saveHistory();
     renderMessage("user", message);
 
-    const pending = renderMessage("assistant", "…");
+    const pending = renderTyping();
     try {
       const resp = await fetch(API_URL, {
         method: "POST",
