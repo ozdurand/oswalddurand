@@ -5,9 +5,8 @@ tool multiple times with refined queries, and assembles the final answer.
 """
 from typing import Optional
 
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
@@ -84,31 +83,15 @@ single project."""
     return [search_about_me, search_projects]
 
 
-def build_agent() -> AgentExecutor:
+def build_agent():
     s = get_settings()
     llm = ChatOpenAI(
         model=s.openai_model,
         temperature=0.2,
         api_key=s.openai_api_key,
     )
-
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        MessagesPlaceholder("chat_history", optional=True),
-        ("human", "{input}"),
-        MessagesPlaceholder("agent_scratchpad"),
-    ])
-
     tools = _build_tools()
-    agent = create_tool_calling_agent(llm, tools, prompt)
-    return AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=False,
-        return_intermediate_steps=True,
-        max_iterations=5,
-        handle_parsing_errors=True,
-    )
+    return create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT)
 
 
 def to_lc_messages(history: list[ChatMessage]):

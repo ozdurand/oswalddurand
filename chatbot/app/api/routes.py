@@ -1,7 +1,9 @@
+
 """HTTP routes for the chatbot."""
 from functools import lru_cache
 
 from fastapi import APIRouter, HTTPException
+from langchain_core.messages import HumanMessage
 
 from app.agents.orchestrator import build_agent, to_lc_messages
 from app.schemas import ChatRequest, ChatResponse
@@ -24,21 +26,29 @@ async def health():
 async def chat(request: ChatRequest) -> ChatResponse:
     agent = _agent()
     try:
-        result = await agent.ainvoke({
-            "input": request.message,
-            "chat_history": to_lc_messages(request.history),
-        })
+        messages = to_lc_messages(request.history) + [
+            HumanMessage(content=request.message)
+        ]
+        result = await agent.ainvoke({"messages": messages})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent error: {e!s}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing request: {e!s}",
+        )
 
-    # Surface which tools the agent invoked — useful for debugging / UI hints.
-    tool_calls = [
-        action.tool for action, _ in result.get("intermediate_steps", [])
-    ]
+    final_messages = result.get("messages", [])
+    answer = final_messages[-1].content if final_messages else ""
+
+    tool_calls = []
+    for msg in final_messages:
+        for tc in getattr(msg, "tool_calls", []):
+            name = tc.get("name") if isinstance(tc, dict) else getattr(tc, "name", None)
+            if name:
+                tool_calls.append(name)
 
     return ChatResponse(
-        answer=result["output"],
-        sources=[],   # see README for how to wire structured sources
+        answer=answer,
+        sources=[],  # see README for how to wire structured sources
         tool_calls=tool_calls,
         session_id=request.session_id,
     )
