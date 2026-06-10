@@ -85,6 +85,45 @@ lint ──┬── test ───────────┐
 
 **Registry:** GitHub Container Registry — `ghcr.io/ozdurand/oz-portfolio-chatbot`.
 
+### Provisioning the host + deploy secrets (one time)
+
+The `deploy` job needs the four secrets in the table above. Set them up like this:
+
+1. **Host** — any Linux server with a public IP/DNS and port 22 open. Its address is `SSH_HOST`.
+2. **Install Docker + create a deploy user** (on the host):
+   ```bash
+   curl -fsSL https://get.docker.com | sh
+   sudo adduser --disabled-password --gecos "" deploy   # this user is SSH_USER
+   sudo usermod -aG docker deploy
+   ```
+3. **Clone the repo + create the real env** (as `deploy`):
+   ```bash
+   git clone https://github.com/ozdurand/oswalddurand.git /opt/oswalddurand   # path is DEPLOY_PATH
+   cd /opt/oswalddurand && cp chatbot/.env.example chatbot/.env
+   nano chatbot/.env            # set the production OPENAI_API_KEY + ALLOWED_ORIGINS
+   ```
+4. **Generate a dedicated CI key** (on your machine — don't reuse a personal key):
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/deploy_oswald -C "github-actions-deploy" -N ""
+   ```
+   Append `deploy_oswald.pub` to the host's `~deploy/.ssh/authorized_keys`. The **private** file
+   `deploy_oswald` is `SSH_KEY`. Verify before continuing:
+   ```bash
+   ssh -i ~/.ssh/deploy_oswald deploy@SSH_HOST "docker --version && ls /opt/oswalddurand"
+   ```
+5. **Add the secrets** (GitHub UI → Settings → Secrets and variables → Actions, or `gh`):
+   ```bash
+   gh secret set SSH_HOST    --body "YOUR_HOST"
+   gh secret set SSH_USER    --body "deploy"
+   gh secret set DEPLOY_PATH --body "/opt/oswalddurand"
+   gh secret set SSH_KEY     < ~/.ssh/deploy_oswald   # pipe the file; avoids line-ending issues
+   ```
+
+> **GHCR access:** the `build` job pushes with the automatic `GITHUB_TOKEN`. New GHCR packages are
+> **private** by default, so either make the package public (Packages → settings → visibility) or
+> `docker login ghcr.io` on the host with a PAT that has `read:packages`, so `docker compose pull`
+> can read the image.
+
 ### Host prerequisites (one time)
 1. Install Docker Engine + the Compose plugin.
 2. Clone the repo to `DEPLOY_PATH` (e.g. `/opt/oswalddurand`).
