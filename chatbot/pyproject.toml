@@ -1,0 +1,22 @@
+# Tooling config shared by local dev, pre-commit, and CI.
+# Not a package build file — config only.
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+# Exclude the local virtualenv and vendored caches from linting.
+extend-exclude = [".venv", "data"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: isort (replaces the standalone isort hook).
+select = ["E", "W", "F", "I"]
+# Black owns line wrapping; ignore line-length lint so the two don't fight.
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

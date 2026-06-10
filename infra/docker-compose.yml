@@ -1,5 +1,8 @@
 services:
   chatbot:
+    # Published by CI to GHCR; `docker compose pull` resolves this on the host.
+    # `build` is kept so `docker compose up --build` still works locally.
+    image: ghcr.io/ozdurand/oz-portfolio-chatbot:latest
     build:
       context: ../chatbot
       dockerfile: Dockerfile
