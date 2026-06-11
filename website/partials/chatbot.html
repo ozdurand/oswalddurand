@@ -1,300 +1,346 @@
-<!--
-  Portfolio chatbot widget v2 — redesigned with avatar header.
-  Drop this in once, near </body>, on every page.
-  Pair with: <script src="/static/js/chatbot-widget.js" defer></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chatbot</title>
 
-  AVATAR: Replace the `src` on .cb-avatar-img with your photo URL
-          (e.g. /static/img/oswald.jpg). Square crop, 240×240+ recommended.
-          If the image fails to load, a gradient "O" fallback is shown.
--->
-<div id="chatbot-root">
-  <button id="chatbot-launcher" type="button" aria-label="Open chat">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  </button>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-  <div id="chatbot-panel" role="dialog" aria-label="Chat with Oswald's assistant">
-    <header class="cb-header">
-      <button id="chatbot-close" type="button" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
+    body {
+      background: #0e0e17;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-      <div class="cb-avatar-wrap">
-        <div class="cb-avatar-ring cb-avatar-ring-2"></div>
-        <div class="cb-avatar-ring cb-avatar-ring-1"></div>
-        <div class="cb-avatar">
-          <!-- Swap src with your photo -->
-          <img class="cb-avatar-img" src="/static/img/avatar.jpg" alt="Oswald"
-               onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cb-avatar-fallback',textContent:'O'}))" />
+    .container {
+      width: 95%;
+      max-width: 1500px;
+      height: 90vh;
+      background: #0c0c14;
+      border-radius: 30px;
+      overflow: hidden;
+      display: flex;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ---------- PICTURE AREA (left) ---------- */
+    .left-panel {
+      width: 32%;
+      background: linear-gradient(180deg, #ff9301, #e07800);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ring1,
+    .ring2,
+    .ring3 {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .ring1 { width: 320px; height: 320px; }
+    .ring2 { width: 260px; height: 260px; }
+    .ring3 { width: 210px; height: 210px; }
+
+    .avatar {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+      border: 6px solid rgba(255, 255, 255, 0.6);
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* shown if the image fails to load */
+    .avatar .placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #ff9301, #ffb347);
+    }
+
+    .left-text {
+      text-align: center;
+      color: #fff;
+    }
+    .left-text strong {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .left-text span {
+      font-size: 15px;
+      opacity: 0.85;
+    }
+
+    /* ---------- RESPONSES + QUERY AREA (right) ---------- */
+    .chat-panel {
+      flex: 1;
+      background: #0e0e17;
+      display: flex;
+      flex-direction: column;
+      padding: 40px;
+    }
+
+    /* responses fill the top, query sits at the bottom */
+    .responses {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding-right: 10px;
+    }
+    .responses::-webkit-scrollbar { width: 6px; }
+    .responses::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    /* message bubbles (classes produced by chatbot-widget.js) */
+    .cb-msg {
+      max-width: 70%;
+      padding: 16px 20px;
+      border-radius: 20px;
+      line-height: 1.5;
+      font-size: 17px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      animation: cb-in 0.2s ease-out;
+    }
+    @keyframes cb-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .cb-user {
+      align-self: flex-end;
+      background: #ff9301;
+      color: #fff;
+      border-bottom-right-radius: 5px;
+    }
+    .cb-assistant {
+      align-self: flex-start;
+      background: #1c1c28;
+      color: rgba(255, 255, 255, 0.85);
+      border-bottom-left-radius: 5px;
+    }
+    .cb-sources {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .cb-sources strong {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .cb-sources ul {
+      margin: 0;
+      padding-left: 18px;
+      list-style: disc;
+    }
+    .cb-sources li {
+      margin-bottom: 6px;
+    }
+
+    /* typing indicator */
+    .cb-typing { display: inline-flex; gap: 5px; padding: 2px; }
+    .cb-typing span {
+      width: 8px; height: 8px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      animation: cb-bounce 1.2s ease-in-out infinite;
+    }
+    .cb-typing span:nth-child(2) { animation-delay: 0.15s; }
+    .cb-typing span:nth-child(3) { animation-delay: 0.30s; }
+    @keyframes cb-bounce {
+      0%, 60%, 100% { transform: translateY(0);    opacity: 0.5; }
+      30%           { transform: translateY(-5px); opacity: 1; }
+    }
+
+    .input-area {
+      margin-top: 25px;
+      display: flex;
+      gap: 15px;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      outline: none;
+      font-size: 16px;
+      background: #1a1a2e;
+      color: #fff;
+    }
+    .input-area input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .input-area input:focus {
+      border-color: #ff9301;
+    }
+
+    .send-btn {
+      width: 70px;
+      border: none;
+      border-radius: 18px;
+      background: #ff9301;
+      cursor: pointer;
+      transition: 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .send-btn:hover {
+      background: #e07800;
+    }
+    .send-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .cb-msg pre {
+      margin: 14px 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    }
+    .cb-msg code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+    }
+    .cb-msg blockquote {
+      margin: 14px 0;
+      padding-left: 16px;
+      border-left: 3px solid #ff9301;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .cb-msg .mermaid {
+      margin: 14px 0;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 560px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+      }
+      .left-panel {
+        width: 100%;
+        padding: 30px 0;
+      }
+      .avatar-wrapper { width: 220px; height: 220px; }
+      .ring1 { width: 220px; height: 220px; }
+      .ring2 { width: 180px; height: 180px; }
+      .ring3 { width: 145px; height: 145px; }
+      .avatar { width: 120px; height: 120px; }
+      .chat-panel { padding: 20px; }
+    }
+
+    </style>
+
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- PICTURE AREA -->
+    <div class="left-panel">
+      <div class="avatar-wrapper">
+        <div class="ring1"></div>
+        <div class="ring2"></div>
+        <div class="ring3"></div>
+
+        <div class="avatar">
+          <!-- Swap src with your photo, e.g. /static/img/oswald.jpg.
+               If it fails to load, a gradient "O" is shown automatically. -->
+          <img class="avatar-img" src="/static/img/OzChatGPTLogo.png" alt="Oswald"
+               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'placeholder',textContent:'O'}))" />
         </div>
       </div>
 
-      <div class="cb-header-text">
+      <div class="left-text">
         <strong>Oswald's Assistant</strong>
         <span>Ask me anything about his work</span>
       </div>
-    </header>
+    </div>
 
-    <div id="chatbot-messages" aria-live="polite"></div>
+    <!-- RESPONSES + QUERY AREA -->
+    <div class="chat-panel">
 
-    <form id="chatbot-form" autocomplete="off">
-      <input id="chatbot-input" type="text" placeholder="Ask me anything…" required />
-      <button type="submit" aria-label="Send">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
-    </form>
+      <!-- RESPONSES AREA (top) — messages are injected here by the script -->
+      <div id="chatbot-messages" class="responses" aria-live="polite"></div>
+
+      <!-- QUERY AREA (bottom) -->
+      <form id="chatbot-form" class="input-area" autocomplete="off">
+        <input id="chatbot-input" type="text" placeholder="Type your message..." required />
+        <button type="submit" class="send-btn" aria-label="Send">
+          <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
+      </form>
+
+    </div>
+
   </div>
-</div>
 
-<style>
-  :root {
-    --cb-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    --cb-primary: #4f46e5;
-    --cb-primary-2: #7c3aed;
-    --cb-primary-light: #818cf8;
-    --cb-surface: #ffffff;
-    --cb-bg: #fafafa;
-    --cb-text: #1e1b4b;
-    --cb-text-muted: #6b7280;
-    --cb-border: #e5e7eb;
-    --cb-shadow: 0 20px 50px -10px rgba(79, 70, 229, 0.25),
-                 0 8px 20px -8px rgba(0, 0, 0, 0.1);
-  }
+  <!-- markdown and diagram rendering for assistant responses -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" defer></script>
+  <!-- adjust path to wherever you serve the script -->
+  <script src="/static/js/chatbot-widget.js" defer></script>
 
-  #chatbot-root {
-    position: fixed;
-    right: 24px; bottom: 24px;
-    z-index: 9999;
-    font-family: var(--cb-font);
-  }
-
-  /* ----- Launcher ----- */
-  #chatbot-launcher {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    border: none;
-    background: linear-gradient(135deg, var(--cb-primary) 0%, var(--cb-primary-2) 100%);
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  #chatbot-launcher:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.5);
-  }
-  #chatbot-launcher svg { width: 26px; height: 26px; }
-
-  /* ----- Panel ----- */
-  #chatbot-panel {
-    display: none;
-    position: absolute;
-    right: 0; bottom: 78px;
-    width: 420px;
-    max-width: calc(100vw - 32px);
-    height: 640px;
-    max-height: calc(100vh - 120px);
-    background: var(--cb-surface);
-    color: var(--cb-text);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--cb-shadow);
-    flex-direction: column;
-    animation: cb-rise 0.25s ease-out;
-  }
-  #chatbot-panel.cb-open { display: flex; }
-  @keyframes cb-rise {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ----- Header / avatar ----- */
-  .cb-header {
-    position: relative;
-    padding: 28px 20px 24px;
-    background: linear-gradient(180deg, #ede9fe 0%, #f5f3ff 60%, #ffffff 100%);
-    text-align: center;
-    border-bottom: 1px solid var(--cb-border);
-  }
-  #chatbot-close {
-    position: absolute;
-    top: 12px; right: 12px;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: var(--cb-text);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s ease;
-  }
-  #chatbot-close:hover { background: rgba(255, 255, 255, 0.95); }
-  #chatbot-close svg { width: 16px; height: 16px; }
-
-  .cb-avatar-wrap {
-    position: relative;
-    width: 96px; height: 96px;
-    margin: 0 auto 14px;
-  }
-  .cb-avatar-ring {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(129, 140, 248, 0.25);
-    animation: cb-pulse 3s ease-in-out infinite;
-  }
-  .cb-avatar-ring-1 { inset: -8px;  opacity: 0.5; }
-  .cb-avatar-ring-2 { inset: -16px; opacity: 0.25; animation-delay: 0.5s; }
-  @keyframes cb-pulse {
-    0%, 100% { transform: scale(1);    opacity: 0.3; }
-    50%      { transform: scale(1.05); opacity: 0.6; }
-  }
-  .cb-avatar {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    overflow: hidden;
-    background: linear-gradient(135deg, #c7d2fe 0%, #ddd6fe 100%);
-    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.2);
-  }
-  .cb-avatar-img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .cb-avatar-fallback {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 36px; font-weight: 600; color: #fff;
-    background: linear-gradient(135deg, var(--cb-primary) 0%, var(--cb-primary-2) 100%);
-  }
-
-  .cb-header-text strong {
-    display: block;
-    font-size: 17px; font-weight: 600;
-    color: var(--cb-text);
-    margin-bottom: 2px;
-  }
-  .cb-header-text span {
-    font-size: 13px;
-    color: var(--cb-text-muted);
-  }
-
-  /* ----- Messages ----- */
-  #chatbot-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: var(--cb-bg);
-  }
-  #chatbot-messages::-webkit-scrollbar { width: 6px; }
-  #chatbot-messages::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.15);
-    border-radius: 3px;
-  }
-  .cb-msg {
-    padding: 12px 16px;
-    border-radius: 16px;
-    max-width: 82%;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    line-height: 1.5;
-    font-size: 15px;
-    animation: cb-in 0.2s ease-out;
-  }
-  @keyframes cb-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .cb-user {
-    background: linear-gradient(135deg, var(--cb-primary) 0%, var(--cb-primary-light) 100%);
-    color: #fff;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
-  }
-  .cb-assistant {
-    background: var(--cb-surface);
-    color: var(--cb-text);
-    align-self: flex-start;
-    border-bottom-left-radius: 4px;
-    border: 1px solid var(--cb-border);
-  }
-
-  /* Typing indicator */
-  .cb-typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
-  .cb-typing span {
-    width: 7px; height: 7px;
-    background: var(--cb-text-muted);
-    border-radius: 50%;
-    animation: cb-bounce 1.2s ease-in-out infinite;
-  }
-  .cb-typing span:nth-child(2) { animation-delay: 0.15s; }
-  .cb-typing span:nth-child(3) { animation-delay: 0.3s; }
-  @keyframes cb-bounce {
-    0%, 60%, 100% { transform: translateY(0);    opacity: 0.5; }
-    30%           { transform: translateY(-5px); opacity: 1; }
-  }
-
-  /* ----- Input ----- */
-  #chatbot-form {
-    display: flex; gap: 10px;
-    padding: 14px 16px;
-    background: var(--cb-surface);
-    border-top: 1px solid var(--cb-border);
-  }
-  #chatbot-input {
-    flex: 1;
-    padding: 12px 16px;
-    border: 1.5px solid var(--cb-border);
-    border-radius: 12px;
-    font: inherit;
-    font-size: 15px;
-    outline: none;
-    color: var(--cb-text);
-    background: var(--cb-bg);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  }
-  #chatbot-input:focus {
-    border-color: var(--cb-primary);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-  }
-  #chatbot-form button {
-    width: 44px; height: 44px; padding: 0;
-    background: linear-gradient(135deg, var(--cb-primary) 0%, var(--cb-primary-2) 100%);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  #chatbot-form button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-  }
-  #chatbot-form button svg { width: 18px; height: 18px; }
-
-  /* ----- Mobile ----- */
-  @media (max-width: 480px) {
-    #chatbot-root { right: 16px; bottom: 16px; }
-    #chatbot-panel {
-      width: calc(100vw - 24px);
-      height: calc(100vh - 100px);
-      right: -8px;
-    }
-  }
-</style>
+</body>
+</html>
