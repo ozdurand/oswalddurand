@@ -6,10 +6,18 @@ This monorepo contains a static portfolio website and a FastAPI agentic RAG chat
 
 ---
 
-## Prerequisites
 
-- Python (Anaconda3 recommended — installed at `C:\Users\<you>\anaconda3\python.exe`)
-- An OpenAI API key (used for GPT-4o-mini + text-embedding-3-small)
+## Prompt package
+
+The chatbot prompt was refactored into a dedicated package to make tuning easier.
+- Location: `chatbot/app/prompts/`
+- Entry point: `build_system_prompt()` — call this when constructing the agent.
+
+If you want to adjust voice, grounding, or few-shot examples, edit `chatbot/app/prompts/system.py` and restart the API.
+
+---
+
+## Step 7 — Start the FastAPI server
 
 ---
 
@@ -24,6 +32,7 @@ chatbot/.env
 ```
 OPENAI_API_KEY=sk-<your-key-here>
 OPENAI_MODEL=gpt-4o-mini
+OPENAI_VISION_MODEL=gpt-4.1-mini
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 CHROMA_PERSIST_DIR=./data/chroma
 WEBSITE_COLLECTION=website_content
@@ -41,7 +50,14 @@ cd chatbot
 pip install -r requirements.txt
 ```
 
-Key packages: `fastapi`, `uvicorn`, `langchain`, `langchain-openai`, `chromadb`, `beautifulsoup4`, `httpx`.
+Key packages: `fastapi`, `uvicorn`, `langchain`, `langchain-openai`, `openai`, `chromadb`, `beautifulsoup4`, `httpx`, `Pillow`, `pytesseract`.
+
+For OCR-based image ingestion, install Tesseract separately on your system:
+- Windows: https://github.com/tesseract-ocr/tesseract
+- macOS: `brew install tesseract`
+- Linux: `sudo apt install tesseract-ocr`
+
+For vision-based image captioning, set `OPENAI_VISION_MODEL` to an image-capable model such as `gpt-4.1-mini` and make sure your OpenAI account has access to it.
 
 ---
 

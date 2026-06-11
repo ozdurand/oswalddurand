@@ -114,17 +114,41 @@ that posts to `/api/v1/chat` (same origin via nginx).
 cp chatbot/.env.example chatbot/.env   # set OPENAI_API_KEY
 make ingest-website U="https://your-portfolio.com"
 make ingest-projects
-make dev
+# Run the API without reload for Windows stability
+cd chatbot && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 # Website (port 3000, any static server)
-cd website && python -m http.server 3000
+cd ../website && python -m http.server 3000
 ```
 
 For local cross-origin development, set `ALLOWED_ORIGINS=http://localhost:3000`
 in `chatbot/.env`, and `window.CHATBOT_API = "http://localhost:8000/api/v1/chat"`
 in your HTML before the widget script loads.
 
+> Tip: On Windows, use the stable `--host 0.0.0.0 --port 8000` command instead of `--reload` if the server is restarting unexpectedly.
+
 ### Option 2 — everything behind nginx via Docker
+
+```bash
+make up
+# → http://localhost:8080      static site
+# → http://localhost:8080/api  chatbot API
+```
+
+---
+
+## CI/CD and deployment
+
+This repository now includes:
+- `CI_CD_PLAN.md` — recommended CI/CD strategy and local runtime guidance
+- `.github/workflows/ci-cd.yml` — GitHub Actions workflow for validation, build, and deploy
+- `requirements-dev.txt` — development dependencies for CI and testing
+
+Use the workflow as the starting point for automated validation and production deployment.
+
+---
+
+## Notes on PHP (`process_form.php`)
 
 ```bash
 make up

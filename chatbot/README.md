@@ -1,5 +1,8 @@
 # Portfolio Chatbot
 
+[![CI](https://github.com/<owner>/<repo>/actions/workflows/python-tests.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/python-tests.yml)
+
+
 Agentic RAG chatbot for a personal portfolio site. A single tool-calling agent
 routes between two retrievers:
 
@@ -41,8 +44,12 @@ Two named collections live in the same persistent Chroma directory.
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+# If you want image OCR support, install Tesseract on your system too:
+# - Windows: https://github.com/tesseract-ocr/tesseract
+# - macOS: brew install tesseract
+# - Linux: sudo apt install tesseract-ocr
 cp .env.example .env
-# edit .env: set OPENAI_API_KEY, ALLOWED_ORIGINS, etc.
+# edit .env: set OPENAI_API_KEY, OPENAI_VISION_MODEL, ALLOWED_ORIGINS, etc.
 ```
 
 ---
@@ -52,6 +59,14 @@ cp .env.example .env
 ### 1) Write project docs
 Drop markdown files into `data/projects/`. Use `_template.md` as the schema — every
 project doc should answer **Why / What / How / Journey / Decisions / Outcomes**.
+If a markdown file references a local image file, the ingestion pipeline will also
+index that image reference as a searchable image document. Website pages are now
+also scanned for images, and those images are indexed as searchable documents too.
+With an image-capable OpenAI model configured via `OPENAI_VISION_MODEL`, the
+pipeline can generate a vision-based caption from the image pixels. With OCR
+installed, it can also extract text from the image and include that in the
+the image and include that in the searchable content.
+
 Filename stem becomes the `project` metadata key, e.g. `multi_agent_rag.md`
 → `project="multi_agent_rag"`. The agent can filter to a specific project.
 
@@ -73,8 +88,10 @@ rebuild, delete `data/chroma/` first.
 ## Run
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
+
+> Tip: Use this command on Windows for a stable server. If you need code reload during development, add `--reload` only after you confirm the API stays up.
 
 - Health:  `GET  /api/v1/health`
 - Chat:    `POST /api/v1/chat`
@@ -142,6 +159,24 @@ const { answer, tool_calls } = await resp.json();
 ---
 
 ## Notes
+
+## Testing
+
+Run the unit tests locally from the repository root:
+
+```bash
+python -m unittest discover -v chatbot/tests
+```
+
+A GitHub Actions CI workflow is included at `.github/workflows/python-tests.yml` that runs the tests on push and pull requests for the `chatbot/` folder.
+
+Pre-commit hooks are provided in the repository root. To enable them locally:
+
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
 
 - `langchain_community.vectorstores.Chroma` is used to stay within your stated
   dependency set. The current recommended import is `langchain_chroma.Chroma`
