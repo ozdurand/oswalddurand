@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 660" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .box   { rx:10; ry:10; stroke-width:2; }
+      .title { font-size:15px; font-weight:700; fill:#0f172a; }
+      .sub   { font-size:11.5px; fill:#475569; }
+      .lbl   { font-size:11px; fill:#475569; font-style:italic; }
+      .edge  { stroke:#475569; stroke-width:2; fill:none; marker-end:url(#arrow); }
+      .wtitle{ font-size:15px; font-weight:700; fill:#fff; }
+      .wsub  { font-size:11.5px; fill:#e2e8f0; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="880" height="660" fill="#f8fafc"/>
+
+  <!-- Browser -->
+  <rect class="box" x="270" y="20" width="340" height="68" fill="#fff" stroke="#0ea5e9"/>
+  <text class="title" x="440" y="46" text-anchor="middle">Visitor's Browser</text>
+  <text class="sub"   x="440" y="66" text-anchor="middle">https://198-199-66-45.sslip.io  ·  /partials/chatbot.html</text>
+
+  <!-- arrow browser -> caddy -->
+  <line class="edge" x1="440" y1="88" x2="440" y2="120"/>
+  <text class="lbl" x="452" y="108">HTTPS</text>
+
+  <!-- Caddy -->
+  <rect class="box" x="240" y="122" width="400" height="70" fill="#ecfeff" stroke="#0ea5e9"/>
+  <text class="title" x="440" y="148" text-anchor="middle">Caddy  ·  host (systemd)</text>
+  <text class="sub"   x="440" y="168" text-anchor="middle">TLS termination · Let's Encrypt auto-cert · listens :80 / :443</text>
+
+  <!-- arrow caddy -> compose -->
+  <line class="edge" x1="440" y1="192" x2="440" y2="232"/>
+  <text class="lbl" x="452" y="216">reverse_proxy → localhost:8080</text>
+
+  <!-- Compose outer box -->
+  <rect x="40" y="236" width="600" height="392" rx="12" fill="#ffffff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="58" y="260" font-size="13" font-weight="700" fill="#64748b">Docker Compose stack  (infra/docker-compose.yml)</text>
+
+  <!-- web / nginx -->
+  <rect class="box" x="72" y="288" width="220" height="96" fill="#f1f5f9" stroke="#334155"/>
+  <text class="title" x="182" y="316" text-anchor="middle">web  ·  nginx</text>
+  <text class="sub"   x="182" y="338" text-anchor="middle">host :8080 → :80</text>
+  <text class="sub"   x="182" y="356" text-anchor="middle">serves static site (website/)</text>
+  <text class="sub"   x="182" y="374" text-anchor="middle">proxies /api/ → chatbot</text>
+
+  <!-- chatbot -->
+  <rect class="box" x="388" y="288" width="220" height="96" fill="#fff7ed" stroke="#ea580c"/>
+  <text class="title" x="498" y="316" text-anchor="middle">chatbot  ·  FastAPI</text>
+  <text class="sub"   x="498" y="338" text-anchor="middle">uvicorn :8000</text>
+  <text class="sub"   x="498" y="356" text-anchor="middle">agentic RAG (LangChain)</text>
+  <text class="sub"   x="498" y="374" text-anchor="middle">guardrails + citations</text>
+
+  <!-- arrow web -> chatbot -->
+  <line class="edge" x1="292" y1="332" x2="388" y2="332"/>
+  <text class="lbl" x="300" y="324">/api → :8000</text>
+
+  <!-- Chroma -->
+  <rect class="box" x="388" y="492" width="220" height="78" fill="#f5f3ff" stroke="#7c3aed"/>
+  <text class="title" x="498" y="522" text-anchor="middle">Chroma vector store</text>
+  <text class="sub"   x="498" y="544" text-anchor="middle">persisted volume (data/chroma)</text>
+  <text class="sub"   x="498" y="562" text-anchor="middle">website_content · projects</text>
+
+  <!-- arrow chatbot <-> chroma -->
+  <line class="edge" x1="498" y1="384" x2="498" y2="492"/>
+  <text class="lbl" x="510" y="442">hybrid retrieval</text>
+
+  <!-- OpenAI (external) -->
+  <rect class="box" x="690" y="288" width="160" height="96" fill="#ecfdf5" stroke="#059669"/>
+  <text class="title" x="770" y="324" text-anchor="middle">OpenAI API</text>
+  <text class="sub"   x="770" y="346" text-anchor="middle">embeddings</text>
+  <text class="sub"   x="770" y="364" text-anchor="middle">chat completions</text>
+
+  <!-- arrow chatbot -> openai -->
+  <line class="edge" x1="608" y1="320" x2="690" y2="320"/>
+
+  <!-- footnote -->
+  <text x="40" y="650" font-size="11" fill="#94a3b8">Image bundled into the chatbot Docker image (python:3.12-slim) · built &amp; published to GHCR by CI</text>
+</svg>
