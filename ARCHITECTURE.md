@@ -78,9 +78,12 @@ The same flow in text:
 - **Vector store:** [chatbot/app/rag/vectorstore.py](chatbot/app/rag/vectorstore.py) — Chroma,
   persisted to `data/chroma`, OpenAI embeddings (`text-embedding-3-small`).
 - **Ingestion:** [chatbot/app/rag/ingestion.py](chatbot/app/rag/ingestion.py) + CLI
-  [chatbot/scripts/ingest.py](chatbot/scripts/ingest.py) — scrapes website HTML or parses project
-  markdown (preserving tables/formulas/images), chunks with metadata, writes embeddings to Chroma.
-  Modes: `projects` (reads `data/projects/`) and `website <url>` (scrapes a live site).
+  [chatbot/scripts/ingest.py](chatbot/scripts/ingest.py) — `load_projects()` ingests **`.md`,
+  `.docx`, `.pptx`, and `.png`** files in `data/projects/`: markdown/docx split on headings, pptx
+  slide text plus embedded slide images captioned via OpenAI vision, and standalone images via
+  vision caption + OCR (OCR needs `tesseract` in the image; vision works regardless). The `website`
+  mode scrapes a live URL. Note: `add_documents` **appends** (no dedup) — clear the Chroma index
+  before a full re-ingest to avoid duplicate chunks.
 
 ### C. Guardrails (security hardening)
 - [chatbot/app/utils/sanitizer.py](chatbot/app/utils/sanitizer.py) — detects/strips prompt-injection.

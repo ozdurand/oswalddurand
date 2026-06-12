@@ -27,10 +27,7 @@ chatbot/data/chroma/
 .DS_Store
 Thumbs.db
 
-# Large source artifacts (NOT used by ingestion, which reads the .md files).
-# The narrative .md project files in chatbot/data/projects/ remain tracked.
-chatbot/data/projects/*.docx
-chatbot/data/projects/*.pptx
-chatbot/data/projects/*.png
+# Repo-level artifacts not used by the app (architecture deck + its generator script).
+# NOTE: project docs in chatbot/data/projects/ (.md/.docx/.pptx/.png) ARE tracked and ingested.
 /Oswald_Portfolio_Chatbot_Architecture.pptx
 /create_presentation.py
